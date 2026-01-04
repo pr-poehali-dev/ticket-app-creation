@@ -310,6 +310,7 @@ export default function Index() {
     new Array(questions.length).fill(null)
   );
   const [showResults, setShowResults] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard);
   const [userName, setUserName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
@@ -364,16 +365,104 @@ export default function Index() {
     setCurrentQuestion(0);
     setSelectedAnswers(new Array(questions.length).fill(null));
     setShowResults(false);
+    setShowReview(false);
     setUserName('');
+  };
+
+  const handleShowReview = () => {
+    setShowReview(true);
   };
 
   const score = calculateScore();
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
+  if (showReview) {
+    return (
+      <div className="min-h-screen relative bg-slate-900 p-4 py-8">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url(https://cdn.poehali.dev/projects/6232b754-6081-4f86-8988-c38029f8384a/files/5ba7650d-5104-4a10-aa9b-c04a07794af1.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/40 text-2xl font-bold tracking-widest">СВЯЗИСТ</div>
+        <div className="max-w-4xl mx-auto space-y-4 relative z-10">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl font-bold text-white">Разбор ошибок</h2>
+            <Button onClick={() => setShowReview(false)} variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
+              <Icon name="ArrowLeft" className="mr-2" size={20} />
+              Назад к результатам
+            </Button>
+          </div>
+          {questions.map((question, index) => {
+            const userAnswer = selectedAnswers[index];
+            const isCorrect = userAnswer === question.correctAnswer;
+            return (
+              <Card key={index} className={`shadow-lg border-2 ${
+                isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+              }`}>
+                <CardHeader>
+                  <div className="flex items-start gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isCorrect ? 'bg-green-500' : 'bg-red-500'
+                    }`}>
+                      <Icon name={isCorrect ? 'Check' : 'X'} size={20} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground mb-1">Вопрос {index + 1}</div>
+                      <CardTitle className="text-lg">{question.question}</CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {question.options.map((option, optIndex) => {
+                    const isUserAnswer = userAnswer === optIndex;
+                    const isCorrectAnswer = question.correctAnswer === optIndex;
+                    return (
+                      <div
+                        key={optIndex}
+                        className={`p-3 rounded-lg border-2 ${
+                          isCorrectAnswer ? 'border-green-500 bg-green-100' :
+                          isUserAnswer ? 'border-red-500 bg-red-100' :
+                          'border-slate-200 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {isCorrectAnswer && (
+                            <Icon name="CheckCircle2" size={20} className="text-green-600 flex-shrink-0" />
+                          )}
+                          {isUserAnswer && !isCorrectAnswer && (
+                            <Icon name="XCircle" size={20} className="text-red-600 flex-shrink-0" />
+                          )}
+                          <span className={`flex-1 ${
+                            isCorrectAnswer ? 'font-semibold text-green-800' :
+                            isUserAnswer ? 'font-semibold text-red-800' :
+                            'text-slate-600'
+                          }`}>{option}</span>
+                          {isCorrectAnswer && (
+                            <Badge variant="default" className="bg-green-600">Правильный ответ</Badge>
+                          )}
+                          {isUserAnswer && !isCorrectAnswer && (
+                            <Badge variant="destructive">Ваш ответ</Badge>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            );
+          })}
+          <Button onClick={handleRestart} className="w-full" size="lg">
+            <Icon name="RotateCcw" className="mr-2" size={20} />
+            Пройти тест заново
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (showNameInput) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-lg">
+      <div className="min-h-screen relative bg-slate-900 flex items-center justify-center p-4">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url(https://cdn.poehali.dev/projects/6232b754-6081-4f86-8988-c38029f8384a/files/5ba7650d-5104-4a10-aa9b-c04a07794af1.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/40 text-2xl font-bold tracking-widest">СВЯЗИСТ</div>
+        <Card className="w-full max-w-md shadow-lg relative z-10">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Введите ваше имя</CardTitle>
             <p className="text-sm text-muted-foreground text-center">
@@ -413,8 +502,10 @@ export default function Index() {
 
   if (showResults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="min-h-screen relative bg-slate-900 p-4 py-8">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url(https://cdn.poehali.dev/projects/6232b754-6081-4f86-8988-c38029f8384a/files/5ba7650d-5104-4a10-aa9b-c04a07794af1.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/40 text-2xl font-bold tracking-widest">СВЯЗИСТ</div>
+        <div className="max-w-4xl mx-auto space-y-6 relative z-10">
           <Card className="shadow-lg">
             <CardHeader className="text-center space-y-2">
               <div className="flex justify-center mb-4">
@@ -448,14 +539,20 @@ export default function Index() {
                   <div className="text-sm text-muted-foreground">Ошибок</div>
                 </div>
               </div>
-              <Button onClick={handleRestart} className="w-full" size="lg">
-                <Icon name="RotateCcw" className="mr-2" size={20} />
-                Пройти тест заново
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={handleShowReview} variant="outline" className="flex-1" size="lg">
+                  <Icon name="FileText" className="mr-2" size={20} />
+                  Разбор ошибок
+                </Button>
+                <Button onClick={handleRestart} className="flex-1" size="lg">
+                  <Icon name="RotateCcw" className="mr-2" size={20} />
+                  Пройти заново
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg">
+          <Card className="shadow-lg bg-white/95 backdrop-blur">
             <CardHeader>
               <CardTitle className="text-2xl font-bold flex items-center gap-2">
                 <Icon name="Trophy" className="text-accent" size={28} />
@@ -501,8 +598,10 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-3xl shadow-lg">
+    <div className="min-h-screen relative bg-slate-900 flex items-center justify-center p-4">
+      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url(https://cdn.poehali.dev/projects/6232b754-6081-4f86-8988-c38029f8384a/files/5ba7650d-5104-4a10-aa9b-c04a07794af1.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/40 text-2xl font-bold tracking-widest">СВЯЗИСТ</div>
+      <Card className="w-full max-w-3xl shadow-lg relative z-10">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">Тест по мобильным комплектам связи</CardTitle>
